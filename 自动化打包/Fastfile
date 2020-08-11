@@ -1,0 +1,160 @@
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/fastlane/docs
+# All available actions: https://docs.fastlane.tools/actions
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "2.56.0"
+
+default_platform :ios
+
+platform :ios do
+  before_all do
+    # ENV["SLACK_URL"] = "https://hooks.slack.com/services/..."
+    
+    
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    scan
+  end
+
+  desc "Submit a new Beta Build to Apple TestFlight"
+  desc "This will also make sure the profile is up to date"
+  lane :beta do
+    # match(type: "appstore") # more information: https://codesigning.guide
+    gym(scheme: "Tycam") # Build your app - more options available
+    pilot
+
+    # sh "your_script.sh"
+    # You can also use other beta testing services here (run `fastlane actions`)
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :release do
+    # match(type: "appstore")
+    # snapshot
+    gym(scheme: "Tycam") # Build your app - more options available
+    deliver(force: true)
+    # frameit
+  end
+
+  # You can define as many lanes as you want
+  
+  lane :delete_app_keychain do |options|
+  		delete_keychain(name: "TycamAppKeychain")
+  end
+
+ 
+  lane :create_app_keychain do |options|
+  	create_keychain(
+  		name: "TycamAppKeychain",
+  		password:"12345678",
+  		default_keychain: true,
+  		unlock: true,
+  		timeout: 3600,
+  		lock_when_sleeps: true
+		)
+  end
+ 
+ 
+  lane :set_project_team do |options|
+  	update_project_team(
+  	path: options[:projectPath],
+  	teamid: options[:teamID]
+		)
+  end
+  	
+  lane :set_certificate do |options|
+  	import_certificate(
+  		keychain_name:"login",
+  		keychain_password: options[:userPwd],
+  		certificate_path: options[:certificatePath],
+  		certificate_password: options[:certificatePwd]
+		)
+	end
+  
+  lane :load_debug_provision do |options|
+  	update_project_provisioning(
+  		xcodeproj: options[:projectPath],
+  		profile: options[:mobileprovisionPath],
+  		build_configuration: "Debug"
+		)
+	end
+  
+ 	lane :load_release_provision do |options|
+  	update_project_provisioning(
+  		xcodeproj: options[:projectPath],
+  		profile: options[:mobileprovisionPath],
+  		build_configuration: "Release"
+		)
+	end
+	
+	lane :set_automatic_code_signing do |options|
+		enable_automatic_code_signing
+	end
+	
+ 	lane :set_BundleID do |options|
+		update_info_plist(
+  		plist_path: options[:InfoPlistPath],
+  		display_name: options[:AppName]
+		)
+		update_app_identifier(
+			xcodeproj: options[:projectPath],
+			plist_path: options[:InfoPlistPath],
+			app_identifier: options[:bundleID]
+		)
+	end
+  
+  lane :clear_derived_X_data do
+    clear_derived_data
+  end
+  
+  lane :set_version do |options|
+    increment_version_number(
+  		version_number: options[:version]
+		)
+		
+  	increment_build_number(
+    	build_number: options[:build]
+    )
+  end
+  
+  lane :set_push_notification do |options|
+    	produce(
+    		enable_services: {
+    			push_notification: options[:enbale]	
+    		}
+    	)
+  end
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Platforms.md
+# All available actions: https://docs.fastlane.tools/actions
+
+# fastlane reports which actions are used. No personal data is recorded. 
+# Learn more at https://github.com/fastlane/fastlane#metrics

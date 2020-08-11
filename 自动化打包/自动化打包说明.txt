@@ -1,0 +1,21 @@
+>>安装fastlane：
+	1、sudo gem install fastlane
+	2、在相应工程目录下运行：fastlane init
+
+>>修改版本号：
+	1、需要在Xcode工程中，“Info.plist File”路径需要修改为当前路径“./TestLive/Info.plist”；
+	2、修改“Versioning”->“Current Prohect Version”-> CURRENT_PROJECT_VERSION；
+	3、以上2点只需要首次修改，后期不再需要；
+
+>>修改BundleID注意：
+	Info,plist文件中的“Bundle identifier”填入$(PRODUCT_BUNDLE_IDENTIFIER)，“Bulid Settings”->“Product Bundle Identifier”中的值为空；
+
+>>将P12证书进行导入安装：
+	命令行：security import 证书.p12 -P 密码
+	比如：security import 123.p12 -P 12345678
+
+>>读取P12文件的证书名称：
+	命令行：openssl pkcs12 -in 证书.p12 -out 证书.pem -nodes
+	比如：openssl pkcs12 -in 123.p12 -out 123.pem -nodes
+	输入此条命令后需要输入本机密码，后查看PEM文件读取P12开发者名称:
+	关键字：friendlyName: iPhone Distribution: ** Li (K512LE4LDJCG)
